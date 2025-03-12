@@ -1,6 +1,8 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
+
 
 interface Room {
   id: number;
@@ -53,6 +55,7 @@ const RoomsPage = () => {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = sortedRooms.slice(indexOfFirstItem, indexOfLastItem);
 
+  const Navbar = () => {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Rooms Management</h1>
@@ -127,5 +130,6 @@ const RoomsPage = () => {
     </div>
   );
 };
+}
 
 export default RoomsPage;
