@@ -1,8 +1,10 @@
-"use client"; // Pastikan menggunakan client-side rendering untuk interaktivitas
+"use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
+import Sidebar from "@app/components/sidebar";
+import Navbar from "@app/components/navbar";
 
-// Interface untuk data user
+
 interface User {
   id: number;
   name: string;
@@ -11,128 +13,109 @@ interface User {
 }
 
 const UsersPage = () => {
-  const [users, setUsers] = useState<User[]>([]); // State untuk menyimpan data users
-  const [filter, setFilter] = useState(''); // State untuk menyimpan kata kunci filter
-  const [sortConfig, setSortConfig] = useState<{ key: keyof User; direction: 'asc' | 'desc' } | null>(null); // State untuk menyimpan konfigurasi sorting
-  const [currentPage, setCurrentPage] = useState(1); // State untuk menyimpan halaman yang aktif
-  const [itemsPerPage] = useState(20); // Jumlah baris per halaman
-  const [isOpen, setIsOpen] = useState(false);
-  const [newUser, setNewUser] = useState({ name: '', email: '', role: '' }); // State untuk input user baru
+  const [users, setUsers] = useState<User[]>([]);
+  const [filter, setFilter] = useState("");
+  const [sortConfig, setSortConfig] = useState<{ key: keyof User; direction: "asc" | "desc" } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(20);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newUser, setNewUser] = useState({ name: "", email: "", role: "" });
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  // Fetch data dari users.json
   useEffect(() => {
-    fetch('/users.json')
+    fetch("/users.json")
       .then((response) => response.json())
       .then((data: User[]) => setUsers(data))
-      .catch((error) => console.error('Error fetching users:', error));
+      .catch((error) => console.error("Error fetching users:", error));
   }, []);
 
-  // Fungsi untuk menambahkan user baru
-  const handleAddUser = () => {
-    const newId = users.length ? users[users.length - 1].id + 1 : 1;
-    const userToAdd = { id: newId, ...newUser };
-    setUsers([...users, userToAdd]);
-    setIsOpen(false);
-    setNewUser({ name: '', email: '', role: '' });
-  };
-
-  // Fungsi untuk memfilter users berdasarkan kata kunci
   const filteredUsers = users.filter((user) => {
-    const searchTerm = filter.toLowerCase();
+    const term = filter.toLowerCase();
     return (
-      user.id.toString().includes(searchTerm) ||
-      user.name.toLowerCase().includes(searchTerm) ||
-      user.email.toLowerCase().includes(searchTerm) ||
-      user.role.toLowerCase().includes(searchTerm)
+      user.id.toString().includes(term) ||
+      user.name.toLowerCase().includes(term) ||
+      user.email.toLowerCase().includes(term) ||
+      user.role.toLowerCase().includes(term)
     );
   });
 
-  // Fungsi untuk mengurutkan data
   const sortedUsers = [...filteredUsers].sort((a, b) => {
-    if (sortConfig !== null) {
+    if (sortConfig) {
       const { key, direction } = sortConfig;
-      if (a[key] < b[key]) {
-        return direction === 'asc' ? -1 : 1;
-      }
-      if (a[key] > b[key]) {
-        return direction === 'asc' ? 1 : -1;
-      }
+      if (a[key] < b[key]) return direction === "asc" ? -1 : 1;
+      if (a[key] > b[key]) return direction === "asc" ? 1 : -1;
     }
     return 0;
   });
 
   const requestSort = (key: keyof User) => {
-    let direction: 'asc' | 'desc' = 'asc';
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({ key, direction });
+    setSortConfig((prev) => ({
+      key,
+      direction: prev?.key === key && prev.direction === "asc" ? "desc" : "asc",
+    }));
   };
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = sortedUsers.slice(indexOfFirstItem, indexOfLastItem);
 
-  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
-
-  const totalPages = Math.ceil(sortedUsers.length / itemsPerPage);
+  const handleAddUser = () => {
+    const newId = users.length ? users[users.length - 1].id + 1 : 1;
+    setUsers([...users, { id: newId, ...newUser }]);
+    setNewUser({ name: "", email: "", role: "" });
+    setIsModalOpen(false);
+  };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Users</h1>
-      <button onClick={() => setIsOpen(true)} className='bg-green-600 hover:bg-gray-600 text-white px-4 py-4 rounded-md'>Tambah Data</button>
+    <div className="flex h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors">
+      <Sidebar
+        isMinimized={isMinimized}
+        isOpen={isSidebarOpen}
+        toggleMinimize={() => setIsMinimized(!isMinimized)}
+        toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+      />
+      <div
+        className={`flex-1 transition-all duration-300 ${
+          isSidebarOpen ? (isMinimized ? "ml-16" : "ml-64") : "ml-0"
+        }`}
+      >
+        <Navbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+    <main className="p-6">
+      <h1 className="text-2xl font-bold mb-6">Users Management</h1>
 
-      {isOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Tambah User</h3>
-            <input
-              type="text"
-              placeholder="Nama"
-              value={newUser.name}
-              onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
-              className="w-full p-2 mb-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <input
-              type="email"
-              placeholder="Email"
-              value={newUser.email}
-              onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-              className="w-full p-2 mb-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <input
-              type="text"
-              placeholder="Role"
-              value={newUser.role}
-              onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-              className="w-full p-2 mb-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <div className="flex justify-end mt-4">
-              <button onClick={handleAddUser} className="bg-blue-700 text-white px-5 py-2 rounded-lg hover:bg-blue-800 mr-2">Tambah</button>
-              <button onClick={() => setIsOpen(false)} className="bg-gray-200 text-gray-900 px-5 py-2 rounded-lg hover:bg-gray-300">Batal</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="mb-6">
+      <div className="flex justify-between mb-4">
         <input
           type="text"
-          placeholder="Filter by ID, name, email, or role..."
+          placeholder="Filter users..."
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full max-w-sm p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="ml-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+        >
+          + Add User
+        </button>
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-        <table className="min-w-full bg-white">
+        <table className="min-w-full">
           <thead>
             <tr>
-              <th className="py-2 px-4 border-b cursor-pointer" onClick={() => requestSort('id')}>ID</th>
-              <th className="py-2 px-4 border-b cursor-pointer" onClick={() => requestSort('name')}>Name</th>
-              <th className="py-2 px-4 border-b cursor-pointer" onClick={() => requestSort('email')}>Email</th>
-              <th className="py-2 px-4 border-b cursor-pointer" onClick={() => requestSort('role')}>Role</th>
+              <th onClick={() => requestSort("id")} className="py-2 px-4 border-b cursor-pointer">
+                ID {sortConfig?.key === "id" && (sortConfig.direction === "asc" ? "↑" : "↓")}
+              </th>
+              <th onClick={() => requestSort("name")} className="py-2 px-4 border-b cursor-pointer">
+                Name {sortConfig?.key === "name" && (sortConfig.direction === "asc" ? "↑" : "↓")}
+              </th>
+              <th onClick={() => requestSort("email")} className="py-2 px-4 border-b cursor-pointer">
+                Email {sortConfig?.key === "email" && (sortConfig.direction === "asc" ? "↑" : "↓")}
+              </th>
+              <th onClick={() => requestSort("role")} className="py-2 px-4 border-b cursor-pointer">
+                Role {sortConfig?.key === "role" && (sortConfig.direction === "asc" ? "↑" : "↓")}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -147,6 +130,71 @@ const UsersPage = () => {
           </tbody>
         </table>
       </div>
+
+      <div className="flex justify-center items-center gap-2">
+        <button
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1}
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg disabled:bg-gray-300"
+        >
+          Previous
+        </button>
+        <span>
+          Page {currentPage} of {Math.ceil(sortedUsers.length / itemsPerPage)}
+        </span>
+        <button
+          onClick={() => setCurrentPage((prev) => prev + 1)}
+          disabled={indexOfLastItem >= sortedUsers.length}
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg disabled:bg-gray-300"
+        >
+          Next
+        </button>
+      </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+            <h3 className="text-xl font-semibold mb-4">Add New User</h3>
+            <input
+              type="text"
+              placeholder="Name"
+              value={newUser.name}
+              onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+              className="w-full p-2 mb-3 border border-gray-300 rounded-lg"
+            />
+            <input
+              type="email"
+              placeholder="Email"
+              value={newUser.email}
+              onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+              className="w-full p-2 mb-3 border border-gray-300 rounded-lg"
+            />
+            <input
+              type="text"
+              placeholder="Role"
+              value={newUser.role}
+              onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+              className="w-full p-2 mb-4 border border-gray-300 rounded-lg"
+            />
+            <div className="flex justify-end">
+              <button
+                onClick={handleAddUser}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 mr-2"
+              >
+                Add
+              </button>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </main>
+    </div>
     </div>
   );
 };
