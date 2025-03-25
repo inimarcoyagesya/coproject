@@ -65,7 +65,7 @@ const FacilitiesPage = () => {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = sortedFacilities.slice(indexOfFirstItem, indexOfLastItem);
 
-  // Fungsi untuk menghasilkan nomor halaman dengan ellipsis jika perlu
+  // Fungsi untuk menghasilkan nomor halaman dengan ellipsis jika total halaman > 7
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
     if (totalPages <= 7) {

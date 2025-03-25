@@ -1,4 +1,4 @@
-import { Home, Map, Users, ShoppingCart, Menu, ChevronDown, ChevronUp, UserCircle, Building2, Cog } from "lucide-react";
+import { Home, Map, Users, ShoppingCart, Menu, ChevronDown, ChevronUp, UserCircle, Building2, Cog, Calendar } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion"; // Animasi!
 
@@ -112,6 +112,14 @@ export default function Sidebar({
                   <Cog className="w-4 h-4 text-teal-200" />
                   <span className="ml-2 font-medium">Facilities Page</span>
                 </a>
+                <a
+                  href="/bookings"
+                  className="flex items-center px-2 py-2 text-sm rounded hover:bg-blue-700 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <Calendar className="w-4 h-4 text-teal-200" />
+                  <span className="ml-2 font-medium">Bookings Page</span>
+                </a>
+
               </motion.div>
             )}
           </AnimatePresence>
