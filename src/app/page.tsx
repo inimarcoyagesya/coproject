@@ -1,90 +1,157 @@
 'use client'
-import { useState } from "react";
-import Sidebar from "@app/components/sidebar";
-import Navbar from "@app/components/navbar";
-import ChartComponent from "@app/components/ChartComponent";
-import { Users, DollarSign, Activity } from "lucide-react";
-import dynamic from "next/dynamic";
+import Link from "next/link";
+import { MapPin, Layers, Search, BarChart, Users, Package } from "lucide-react";
 
-const DraggableTable = dynamic(() => import('@app/components/DraggableTable'), { ssr: false });
-
-export default function AdminDashboard() {
-  const [isMinimized, setIsMinimized] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
+export default function LandingPage() {
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors overflow-x-hidden">
-      <Sidebar
-        isMinimized={isMinimized}
-        isOpen={isSidebarOpen}
-        toggleMinimize={() => setIsMinimized(!isMinimized)}
-        toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-      />
-      <div
-        className={`flex-1 transition-all duration-300 ${
-          isSidebarOpen ? (isMinimized ? "ml-16" : "ml-64") : "ml-0"
-        }`}
-      >
-        <Navbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
-        <main className="p-6 overflow-auto">
-          <h1 className="text-3xl font-bold mb-8 text-gray-800 dark:text-gray-100 transition-colors">
-            Admin Dashboard
+    <div className="dark:bg-gray-900 transition-colors duration-300">
+      {/* Hero Section */}
+      <section className="bg-gradient-to-r from-blue-900 to-teal-800 text-white py-20 px-4">
+        <div className="max-w-6xl mx-auto text-center">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6">
+            Wujudkan UMKM Tangguh Bersama
+            <span className="block mt-2 text-teal-300">Sistem Geografis Kami</span>
           </h1>
+          <p className="text-xl mb-8 max-w-2xl mx-auto">
+            Temukan, Pantau, dan Kembangkan UMKM dengan Dukungan Data Spasial Akurat
+          </p>
+          <div className="flex justify-center gap-4">
+            <Link href="/register" className="bg-teal-400 hover:bg-teal-500 text-blue-900 font-bold px-8 py-3 rounded-lg transition">
+              Daftar Sekarang
+            </Link>
+            <Link href="/login" className="border-2 border-teal-400 hover:bg-teal-400/20 text-white font-bold px-8 py-3 rounded-lg transition">
+              Masuk Akun
+            </Link>
+          </div>
+        </div>
+      </section>
 
-          {/* Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-white dark:bg-gray-800 shadow-lg border border-blue-100 dark:border-gray-700 rounded-2xl p-6 hover:shadow-xl transform hover:-translate-y-1 transition">
-              <div className="flex items-center mb-4">
-                <Users className="w-10 h-10 text-teal-900 bg-teal-100 dark:text-teal-100 dark:bg-teal-900 p-2 rounded-full transition-colors" />
-                <h2 className="ml-4 text-lg font-semibold text-gray-700 dark:text-gray-200">
-                  Total Users
-                </h2>
-              </div>
-              <p className="text-3xl font-bold text-blue-900 dark:text-blue-400">1,234</p>
-            </div>
+      {/* Fitur Unggulan */}
+      <section className="py-16 px-4 bg-white dark:bg-gray-800">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-12 dark:text-white">
+            Mengapa Memilih Sistem Kami?
+          </h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            <FeatureCard 
+              icon={<MapPin className="w-8 h-8" />}
+              title="Pemetaan UMKM Real-Time"
+              description="Visualisasi sebaran UMKM terkini dengan integrasi data geospasial"
+            />
+            <FeatureCard
+              icon={<Search className="w-8 h-8" />}
+              title="Pencarian Cerdas"
+              description="Temukan UMKM berdasarkan lokasi, kategori, atau produk"
+            />
+            <FeatureCard
+              icon={<BarChart className="w-8 h-8" />}
+              title="Analisis Data"
+              description="Analisis perkembangan UMKM dengan dashboard interaktif"
+            />
+          </div>
+        </div>
+      </section>
 
-            <div className="bg-white dark:bg-gray-800 shadow-lg border border-blue-100 dark:border-gray-700 rounded-2xl p-6 hover:shadow-xl transform hover:-translate-y-1 transition">
-              <div className="flex items-center mb-4">
-                <DollarSign className="w-10 h-10 text-teal-900 bg-teal-100 dark:text-teal-100 dark:bg-teal-900 p-2 rounded-full transition-colors" />
-                <h2 className="ml-4 text-lg font-semibold text-gray-700 dark:text-gray-200">
-                  Revenue
-                </h2>
-              </div>
-              <p className="text-3xl font-bold text-blue-900 dark:text-blue-400">$56,789</p>
-            </div>
-
-            <div className="bg-white dark:bg-gray-800 shadow-lg border border-blue-100 dark:border-gray-700 rounded-2xl p-6 hover:shadow-xl transform hover:-translate-y-1 transition">
-              <div className="flex items-center mb-4">
-                <Activity className="w-10 h-10 text-teal-900 bg-teal-100 dark:text-teal-100 dark:bg-teal-900 p-2 rounded-full transition-colors" />
-                <h2 className="ml-4 text-lg font-semibold text-gray-700 dark:text-gray-200">
-                  Active Sessions
-                </h2>
-              </div>
-              <p className="text-3xl font-bold text-blue-900 dark:text-blue-400">345</p>
+      {/* Demo Peta */}
+      <section className="py-16 px-4 bg-gray-50 dark:bg-gray-900">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-12 dark:text-white">
+            Jelajahi UMKM di Wilayah Anda
+          </h2>
+          <div className="relative h-96 bg-gray-200 rounded-xl shadow-lg overflow-hidden">
+            {/* Tempat untuk integrasi komponen peta */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-gray-500">Peta Interaktif akan Ditampilkan di Sini</span>
             </div>
           </div>
+        </div>
+      </section>
 
-          {/* Chart */}
-          <div className="mt-8">
-            <div className="bg-white dark:bg-gray-800 border border-blue-100 dark:border-gray-700 rounded-2xl p-6 shadow-md transition-colors">
-              <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">
-                Analytics Overview
-              </h2>
-              <ChartComponent />
-            </div>
+      {/* Statistik */}
+      <section className="py-16 px-4 bg-blue-900 text-white">
+        <div className="max-w-6xl mx-auto text-center">
+          <div className="grid md:grid-cols-3 gap-8">
+            <StatItem value="500+" label="UMKM Terdaftar" />
+            <StatItem value="95%" label="Wilayah Tercover" />
+            <StatItem value="24/7" label="Update Data Real-Time" />
           </div>
+        </div>
+      </section>
 
-          {/* Table */}
-          <div className="mt-8 mb-16">
-            <div className="bg-white dark:bg-gray-800 border border-blue-100 dark:border-gray-700 rounded-2xl p-6 shadow-md transition-colors">
-              <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">
-                User Data
-              </h2>
-              <DraggableTable />
-            </div>
+      {/* Testimoni */}
+      <section className="py-16 px-4 bg-white dark:bg-gray-800">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-12 dark:text-white">
+            Kata Mereka yang Sudah Bergabung
+          </h2>
+          <div className="grid md:grid-cols-2 gap-8">
+            <TestimonialCard
+              name="Budi Santoso"
+              role="Pemilik UMKM Kuliner"
+              text="Sistem ini membantu saya menemukan lokasi strategis untuk cabang baru"
+            />
+            <TestimonialCard
+              name="Admin Kecamatan"
+              role="Admin Wilayah"
+              text="Memudahkan pemantauan perkembangan UMKM di wilayah kami"
+            />
           </div>
-        </main>
-      </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-16 px-4 bg-teal-800 text-white">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl font-bold mb-6">
+            Bergabunglah Sekarang dan Mulai Eksplorasi!
+          </h2>
+          <p className="mb-8 text-lg">
+            Dapatkan akses penuh ke seluruh fitur dan manfaat sistem kami
+          </p>
+          <div className="flex justify-center gap-4">
+            <Link href="/register" className="bg-white hover:bg-gray-100 text-teal-800 font-bold px-8 py-3 rounded-lg transition">
+              Daftar Gratis
+            </Link>
+            <Link href="/login" className="border-2 border-white hover:bg-white/20 font-bold px-8 py-3 rounded-lg transition">
+              Masuk Sekarang
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
+
+// Komponen Pendukung
+const FeatureCard = ({ icon, title, description }: { 
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) => (
+  <div className="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-lg hover:shadow-xl transition">
+    <div className="w-12 h-12 mb-4 flex items-center justify-center bg-teal-100 dark:bg-teal-800 rounded-lg">
+      {icon}
+    </div>
+    <h3 className="text-xl font-bold mb-2 dark:text-white">{title}</h3>
+    <p className="text-gray-600 dark:text-gray-300">{description}</p>
+  </div>
+);
+
+const StatItem = ({ value, label }: { value: string; label: string }) => (
+  <div className="p-6">
+    <div className="text-4xl font-bold mb-2">{value}</div>
+    <div className="text-lg">{label}</div>
+  </div>
+);
+
+const TestimonialCard = ({ name, role, text }: { 
+  name: string;
+  role: string;
+  text: string;
+}) => (
+  <div className="bg-white dark:bg-gray-700 p-8 rounded-xl shadow-lg">
+    <p className="text-gray-600 dark:text-gray-300 mb-4">"{text}"</p>
+    <div className="font-bold dark:text-white">{name}</div>
+    <div className="text-sm text-teal-600 dark:text-teal-400">{role}</div>
+  </div>
+);

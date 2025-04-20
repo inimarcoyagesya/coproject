@@ -1,6 +1,7 @@
-import { Home, Map, Users, ShoppingCart, Menu, ChevronDown, ChevronUp, UserCircle, Building2, Cog, Calendar } from "lucide-react";
+import { Home, Map, Users, ShoppingCart, Menu, ChevronDown, ChevronUp, UserCircle, Building2, Cog, Calendar, LogOut } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion"; // Animasi!
+import { useRouter } from "next/navigation";
 
 interface SidebarProps {
   isMinimized: boolean;
@@ -16,7 +17,15 @@ export default function Sidebar({
   toggleSidebar,
 }: SidebarProps) {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const router = useRouter();
 
+  // Fungsi untuk handle logout
+  const handleLogout = () => {
+    // Hapus data user dari localStorage
+    localStorage.removeItem('currentUser');
+    // Redirect ke halaman login
+    router.push('/login');
+  };
   return (
     <div
       className={`fixed inset-y-0 left-0 text-white shadow-lg border-r transition-all duration-300
@@ -125,6 +134,17 @@ export default function Sidebar({
           </AnimatePresence>
         </div>
       </nav>
+      <div className="absolute bottom-0 w-full p-4 border-t border-blue-800 dark:border-gray-700">
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center px-4 py-3 hover:bg-blue-700 dark:hover:bg-gray-700 transition-colors rounded-lg"
+        >
+          <LogOut className="w-5 h-5 text-red-300" />
+          <span className={`ml-3 font-medium ${isMinimized ? "hidden" : "block"}`}>
+            Logout
+          </span>
+        </button>
+      </div>
     </div>
   );
 }
