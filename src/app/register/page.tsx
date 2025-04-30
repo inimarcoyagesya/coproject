@@ -2,51 +2,61 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { MapPin } from "lucide-react"
+import { MapPin, Loader2 } from 'lucide-react'
 
-interface User {
-  id: string
+interface RegisterPayload {
   name: string
   email: string
-  role: string
+  password: string
+  confirmPassword: string
 }
 
 export default function RegisterPage() {
   const router = useRouter()
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<RegisterPayload>({
     name: '',
     email: '',
-    id: ''
+    password: '',
+    confirmPassword: ''
   })
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+  }
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+    setError('')
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Password dan konfirmasi password tidak cocok')
+      return
+    }
+
+    setLoading(true)
     try {
-      const existingUsers: User[] = JSON.parse(
-        localStorage.getItem('users') || 
-        await fetch('/users.json').then(res => res.text())
-      )
+      const res = await fetch('/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password
+        })
+      })
 
-      if (existingUsers.some(user => user.email === formData.email)) {
-        throw new Error('Email sudah terdaftar')
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Gagal melakukan registrasi')
       }
-      
-      if (existingUsers.some(user => user.id === formData.id)) {
-        throw new Error('ID sudah digunakan')
-      }
-
-      const newUser: User = {
-        ...formData,
-        role: 'MEMBER'
-      }
-
-      const updatedUsers = [...existingUsers, newUser]
-      localStorage.setItem('users', JSON.stringify(updatedUsers))
-      router.push('/auth/login')
+      router.push('/login')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Gagal melakukan registrasi')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -57,50 +67,71 @@ export default function RegisterPage() {
         <div className="mb-8 flex flex-col items-center space-y-2">
           <MapPin className="w-12 h-12 text-teal-600" />
           <h1 className="text-3xl font-bold text-gray-800">
-            Daftar UMKM GIS
+            Daftar Pengguna
             <span className="block text-center text-lg font-medium text-teal-600 mt-1">
-              Bergabung dengan Jaringan Kami
+              Buat akun untuk mengakses layanan
             </span>
           </h1>
         </div>
 
         <form onSubmit={handleRegister} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Nama UMKM
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+              Nama
             </label>
             <input
+              id="name"
+              name="name"
               type="text"
               value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              onChange={handleChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all"
-              placeholder="Nama usaha Anda"
+              placeholder="Nama lengkap Anda"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
               Email
             </label>
             <input
+              id="email"
+              name="email"
               type="email"
               value={formData.email}
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
+              onChange={handleChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all"
-              placeholder="contoh@umkm.com"
+              placeholder="contoh@domain.com"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              ID UMKM
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              Password
             </label>
             <input
-              type="text"
-              value={formData.id}
-              onChange={(e) => setFormData({...formData, id: e.target.value})}
+              id="password"
+              name="password"
+              type="password"
+              value={formData.password}
+              onChange={handleChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all"
-              placeholder="Masukkan ID unik Anda"
+              placeholder="Masukkan password"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+              Konfirmasi Password
+            </label>
+            <input
+              id="confirmPassword"
+              name="confirmPassword"
+              type="password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all"
+              placeholder="Ulangi password Anda"
             />
           </div>
 
@@ -112,8 +143,10 @@ export default function RegisterPage() {
 
           <button
             type="submit"
-            className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-[1.02]"
+            disabled={loading}
+            className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-[1.02] flex items-center justify-center"
           >
+            {loading ? <Loader2 className="animate-spin w-5 h-5 mr-2" /> : null}
             Daftar Sekarang
           </button>
         </form>
@@ -121,19 +154,19 @@ export default function RegisterPage() {
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
             Sudah punya akun?{' '}
-            <Link 
-              href="/auth/login" 
+            <Link
+              href="/auth/login"
               className="text-teal-600 hover:text-teal-800 font-medium"
             >
-              Masuk disini
+              Masuk di sini
             </Link>
           </p>
-          <Link 
-    href="/" 
-    className="inline-block mt-4 text-sm text-gray-600 hover:text-teal-700 font-medium underline transition-all"
-  >
-    ← Kembali ke Halaman Utama
-  </Link>
+          <Link
+            href="/"
+            className="inline-block mt-4 text-sm text-gray-600 hover:text-teal-700 font-medium underline transition-all"
+          >
+            ← Kembali ke Halaman Utama
+          </Link>
         </div>
       </div>
     </div>
