@@ -8,7 +8,7 @@ interface RegisterPayload {
   name: string
   email: string
   password: string
-  confirmPassword: string
+  password_confirmation: string
 }
 
 export default function RegisterPage() {
@@ -17,9 +17,10 @@ export default function RegisterPage() {
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    password_confirmation: ''
   })
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -27,34 +28,83 @@ export default function RegisterPage() {
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
+  const validateForm = () => {
+    setError('') // Reset error
+    
+    if (!formData.name || !formData.email || !formData.password || !formData.password_confirmation) {
+      setError('Semua field wajib diisi')
+      return false
+    }
+    
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setError('Format email tidak valid')
+      return false
+    }
+    
+    if (formData.password.length < 8) {
+      setError('Password harus minimal 8 karakter')
+      return false
+    }
+    
+    if (formData.password !== formData.password_confirmation) {
+      setError('Password dan konfirmasi password tidak cocok')
+      return false
+    }
+    
+    return true
+  }
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
-
-    if (formData.password !== formData.confirmPassword) {
-      setError('Password dan konfirmasi password tidak cocok')
-      return
-    }
+    
+    if (!validateForm()) return
 
     setLoading(true)
     try {
-      const res = await fetch('/register', {
+      const response = await fetch('https://simaru.amisbudi.cloud/api/auth/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        credentials: 'include', // Penting untuk cookie management
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
-          password: formData.password
+          password: formData.password,
+          password_confirmation: formData.password_confirmation
         })
       })
 
-      const data = await res.json()
-      if (!res.ok) {
-        throw new Error(data.error || 'Gagal melakukan registrasi')
+      const data = await response.json()
+      
+      if (!response.ok) {
+        // Handle error dari backend
+        let errorMessage = data.message || 'Registrasi gagal'
+        
+        // Jika ada error validasi dari Laravel
+        if (data.errors) {
+          errorMessage = Object.values(data.errors)
+            .flat()
+            .join(', ')
+        }
+        
+        throw new Error(errorMessage)
       }
-      router.push('/login')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gagal melakukan registrasi')
+
+      // Jika registrasi berhasil
+      setSuccess('Registrasi berhasil! Anda akan dialihkan ke halaman login...')
+      setTimeout(() => {
+        router.push('/login')
+      }, 3000)
+    } catch (err: unknown) {
+      let errorMessage = 'Terjadi kesalahan saat registrasi'
+      if (err instanceof Error) {
+        errorMessage = err.message
+      } else if (typeof err === 'string') {
+        errorMessage = err
+      }
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -85,6 +135,7 @@ export default function RegisterPage() {
               type="text"
               value={formData.name}
               onChange={handleChange}
+              required
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all"
               placeholder="Nama lengkap Anda"
             />
@@ -100,6 +151,7 @@ export default function RegisterPage() {
               type="email"
               value={formData.email}
               onChange={handleChange}
+              required
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all"
               placeholder="contoh@domain.com"
             />
@@ -115,21 +167,24 @@ export default function RegisterPage() {
               type="password"
               value={formData.password}
               onChange={handleChange}
+              required
+              minLength={8}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all"
-              placeholder="Masukkan password"
+              placeholder="Masukkan password (min. 8 karakter)"
             />
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700 mb-2">
               Konfirmasi Password
             </label>
             <input
-              id="confirmPassword"
-              name="confirmPassword"
+              id="password_confirmation"
+              name="password_confirmation"
               type="password"
-              value={formData.confirmPassword}
+              value={formData.password_confirmation}
               onChange={handleChange}
+              required
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all"
               placeholder="Ulangi password Anda"
             />
@@ -141,10 +196,16 @@ export default function RegisterPage() {
             </div>
           )}
 
+          {success && (
+            <div className="p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
+              {success}
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-[1.02] flex items-center justify-center"
+            className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-[1.02] flex items-center justify-center disabled:opacity-70"
           >
             {loading ? <Loader2 className="animate-spin w-5 h-5 mr-2" /> : null}
             Daftar Sekarang
@@ -155,7 +216,7 @@ export default function RegisterPage() {
           <p className="text-sm text-gray-600">
             Sudah punya akun?{' '}
             <Link
-              href="/auth/login"
+              href="/login"
               className="text-teal-600 hover:text-teal-800 font-medium"
             >
               Masuk di sini

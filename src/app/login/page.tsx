@@ -5,10 +5,10 @@ import Link from 'next/link'
 import { MapPin, Loader2 } from 'lucide-react'
 
 export default function LoginPage() {
-  const router = useRouter()
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const router = useRouter()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -19,24 +19,33 @@ export default function LoginPage() {
     e.preventDefault()
     setError('')
     setLoading(true)
+    
     try {
-      const res = await fetch('/login', {
+      const response = await fetch('https://simaru.amisbudi.cloud/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           email: formData.email,
           password: formData.password
         })
       })
-      const data = await res.json()
-      if (!res.ok) {
-        throw new Error(data.error || 'Login gagal')
+      
+      const data = await response.json()
+      console.log(data)
+
+      if (response.ok) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('accessToken', data.accessToken);
+        router.push('/dashboard');
+      } else {
+        setError(data.message || 'Login gagal');
       }
-      router.push('/dashboard')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login gagal')
+      setError('Terjadi kesalahan. Silakan coba lagi.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 

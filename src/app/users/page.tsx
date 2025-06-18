@@ -121,7 +121,7 @@ const UsersPage = () => {
       <div
         className={`flex-1 transition-all duration-300 ${isSidebarOpen ? (isMinimized ? "ml-16" : "ml-64") : "ml-0"}`}
       >
-        <Navbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+        <Navbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} user={null} onLogout={() => {}} />
         <main className="p-6">
           <h1 className="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100">Users Management</h1>
 

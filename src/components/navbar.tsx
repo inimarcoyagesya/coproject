@@ -1,12 +1,14 @@
 import { useState } from "react";
-import { MapPin, Moon, Sun, Menu } from "lucide-react"; // Mengganti icon Menu menjadi MapPin
-import useDarkMode from "../hooks/useDarkMode"; // Sesuaikan path
+import { MapPin, Moon, Sun, Menu, User, LogOut } from "lucide-react";
+import useDarkMode from "../hooks/useDarkMode";
 
 interface NavbarProps {
   toggleSidebar: () => void;
+  user: { name: string; email: string } | null;
+  onLogout: () => void;
 }
 
-export default function Navbar({ toggleSidebar }: NavbarProps) {
+export default function Navbar({ toggleSidebar, user, onLogout }: NavbarProps) {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const { isDark, toggleDarkMode } = useDarkMode();
 
@@ -17,37 +19,68 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
         <a href="/" className="flex items-center space-x-3">
           <img src="/logo.svg" className="h-8" alt="Logo" />
           <span className="self-center text-2xl font-semibold whitespace-nowrap text-white">
-            UMKM GIS
+            SIMARU
           </span>
         </a>
 
         {/* Right Side: User dropdown, Dark Mode Toggle & Mobile Menu Toggle */}
         <div className="flex items-center md:order-2 space-x-3">
-
           {/* Dark Mode Toggle */}
           <button
             onClick={toggleDarkMode}
             className="p-2 rounded-full bg-blue-500 hover:bg-blue-700 dark:bg-gray-700 dark:hover:bg-gray-600 transition"
+            aria-label="Toggle dark mode"
           >
             {isDark ? <Sun className="text-yellow-400 w-5 h-5" /> : <Moon className="text-white w-5 h-5" />}
           </button>
 
           {/* User Dropdown */}
-          <button
-            type="button"
-            className="flex text-sm bg-blue-200 rounded-full focus:ring-4 focus:ring-white"
-            onClick={() => setDropdownOpen(!isDropdownOpen)}
-          >
-            <span className="sr-only">Open user menu</span>
-            <img
-              className="w-8 h-8 rounded-full"
-              src="/pp.png"
-              alt="User Photo"
-            />
-          </button>
-          {isDropdownOpen && (
-            <div className="absolute right-4 top-16 z-50 w-48 bg-white rounded-lg shadow-md dark:bg-gray-700">
-              {/* Dropdown Content */}
+          {user ? (
+            <div className="relative">
+              <button
+                type="button"
+                className="flex text-sm bg-blue-200 rounded-full focus:ring-4 focus:ring-white"
+                onClick={() => setDropdownOpen(!isDropdownOpen)}
+                aria-expanded={isDropdownOpen}
+                aria-haspopup="true"
+              >
+                <span className="sr-only">Open user menu</span>
+                <div className="bg-gray-200 border-2 border-dashed rounded-xl w-8 h-8 flex items-center justify-center">
+                  <User className="text-blue-800 w-5 h-5" />
+                </div>
+              </button>
+              
+              {isDropdownOpen && (
+                <div 
+                  className="absolute right-0 mt-2 z-50 w-48 bg-white rounded-lg shadow-md dark:bg-gray-700 border dark:border-gray-600"
+                  onMouseLeave={() => setDropdownOpen(false)}
+                >
+                  <div className="px-4 py-3 border-b dark:border-gray-600">
+                    <p className="text-sm text-gray-900 dark:text-white font-medium truncate">
+                      {user.name}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-300 truncate">
+                      {user.email}
+                    </p>
+                  </div>
+                  <div className="py-1">
+                    <button
+                      onClick={() => {
+                        onLogout();
+                        setDropdownOpen(false);
+                      }}
+                      className="flex w-full items-center px-4 py-2 text-sm text-red-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-red-400"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sign out
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="bg-gray-200 border-2 border-dashed rounded-xl w-8 h-8 flex items-center justify-center">
+              <User className="text-blue-800 w-5 h-5" />
             </div>
           )}
 

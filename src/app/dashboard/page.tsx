@@ -25,7 +25,7 @@ export default function AdminDashboard() {
           isSidebarOpen ? (isMinimized ? "ml-16" : "ml-64") : "ml-0"
         }`}
       >
-        <Navbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+        <Navbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} user={null} onLogout={() => {}} />
         <main className="p-6 overflow-auto">
           <h1 className="text-3xl font-bold mb-8 text-gray-800 dark:text-gray-100 transition-colors">
             Admin Dashboard
